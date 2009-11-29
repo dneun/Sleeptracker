@@ -2,7 +2,7 @@ module Main where
 
 import Char (ord)
 import Control.Monad
-import Control.Monad.Loops
+import Control.Monad.Loops (unfoldM)
 import System.Hardware.Serialport
 
 main = do s <- openSerial "/dev/ttyUSB0" defaultSerialSettings { baudRate = B2400 }
