@@ -34,8 +34,7 @@ showAlmostAwakes = concat . zipWith format [1..]
     where format n aa = " Data " ++ show n ++ ":    " ++ show aa ++ "\n"
 
 parse :: [Int] -> Sleep
-parse lst = let ([_,month,day,_,window,toBed0,toBed1,
-                  alarm0,alarm1,cntData],rest) = splitAt 10 lst
+parse lst = let ([_,month,day,_,window,toBed0,toBed1,alarm0,alarm1,cntData],rest) = splitAt 10 lst
             in Sleep { date         = (month,day),
                        window       = window,
                        toBed        = (toBed0,toBed1),
