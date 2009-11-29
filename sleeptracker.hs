@@ -11,10 +11,6 @@ main = do s <- openSerial "/dev/ttyUSB0" defaultSerialSettings { baudRate = B240
           print $ parse $ map ord response
           closeSerial s
 
-showAA :: [(Int,Int,Int)] -> String
-showAA = concat . zipWith format [1..]
-    where format n aa = " Data " ++ show n ++ ":    " ++ show aa ++ "\n"
-
 data Sleep = Sleep {
       date :: (Int,Int),
       window :: Int,
@@ -31,7 +27,11 @@ instance Show Sleep where
              \Window:                " ++ show (window s) ++ "\n\
              \\n\
              \Awake moments (" ++ show (length (almostAwakes s)) ++ "):\n" ++
-             showAA (almostAwakes s)
+             showAlmostAwakes (almostAwakes s)
+
+showAlmostAwakes :: [(Int,Int,Int)] -> String
+showAlmostAwakes = concat . zipWith format [1..]
+    where format n aa = " Data " ++ show n ++ ":    " ++ show aa ++ "\n"
 
 parse :: [Int] -> Sleep
 parse lst = let ([_,month,day,_,window,toBed0,toBed1,
