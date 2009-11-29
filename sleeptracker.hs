@@ -7,7 +7,7 @@ import System.Hardware.Serialport
 
 main = do s <- openSerial "/dev/ttyUSB0" defaultSerialSettings { baudRate = B2400 }
           sendChar s 'V'
-          response <- liftM (map ord) $ unfoldM (recvChar s)
+          response <- unfoldM (fmap (fmap ord) (recvChar s))
           unless (checksumIsCorrect response) (error "Checksum Error.")
           print $ parse response
           closeSerial s
