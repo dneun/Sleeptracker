@@ -7,9 +7,9 @@ import System.Hardware.Serialport
 
 main = do s <- openSerial "/dev/ttyUSB0" defaultSerialSettings { baudRate = B2400 }
           sendChar s 'V'
-          response <- unfoldM (recvChar s)
+          response <- liftM (map ord) $ unfoldM (recvChar s)
           unless (checksumIsCorrect response) (error "Checksum Error.")
-          print $ parse $ map ord response
+          print $ parse response
           closeSerial s
 
 data Sleep = Sleep {
@@ -53,14 +53,14 @@ groupN :: Int -> [a] -> [[a]]
 groupN n []  = []
 groupN n lst = take n lst : groupN n (drop n lst)
 
-checksumIsCorrect :: [Char] -> Bool
+checksumIsCorrect :: [Int] -> Bool
 checksumIsCorrect lst = findChecksum lst == computeChecksum lst
 
-computeChecksum :: [Char] -> Int
-computeChecksum = flip mod 256 . sum . map ord . drop 1 . dropLast 2
+computeChecksum :: [Int] -> Int
+computeChecksum = flip mod 256 . sum . drop 1 . dropLast 2
 
-findChecksum :: [Char] -> Int
-findChecksum lst = ord $ head $ drop (length lst - 2) lst
+findChecksum :: [Int] -> Int
+findChecksum lst = head $ drop (length lst - 2) lst
 
-dropLast :: Int -> String -> String
+dropLast :: Int -> [a] -> [a]
 dropLast n str = take (length str - n) str
