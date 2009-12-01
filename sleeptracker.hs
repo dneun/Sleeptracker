@@ -70,10 +70,10 @@ parse lst = let ([_,month,day,_,window,toBed0,toBed1,alarm0,alarm1,cntData],rest
                      }
 
 parseAlmostAwakes :: Int -> [Int] -> [LongTime]
-parseAlmostAwakes count = map (\(a,b,c) -> LongTime a b c) . map three . take count . groupN 3
+parseAlmostAwakes count = map longTime . take count . groupN 3
 
-three :: [Int] -> (Int,Int,Int)
-three [a,b,c] = (a,b,c)
+longTime :: [Int] -> LongTime
+longTime [hour,minute,second] = LongTime hour minute second
 
 groupN :: Int -> [a] -> [[a]]
 groupN n []  = []
