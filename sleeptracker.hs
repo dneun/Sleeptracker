@@ -4,6 +4,7 @@ import Char (ord)
 import Control.Monad
 import Control.Monad.Loops (unfoldM)
 import System.Hardware.Serialport
+import Text.Printf
 
 main = do s <- openSerial "/dev/ttyUSB0" defaultSerialSettings { baudRate = B2400 }
           sendChar s 'V'
@@ -12,12 +13,37 @@ main = do s <- openSerial "/dev/ttyUSB0" defaultSerialSettings { baudRate = B240
           print $ parse response
           closeSerial s
 
+data Date = Date {
+      day :: Int,
+      month :: Int
+}
+
+instance Show Date where
+    show (Date day month) = printf "%02d.%02d." day month
+
+data ShortTime = ShortTime {
+      stHour :: Int,
+      stMinute :: Int
+    }
+
+instance Show ShortTime where
+    show (ShortTime hour minute) = printf "%02d:%02d" hour minute
+
+data LongTime = LongTime {
+      ltHour :: Int,
+      ltMinute :: Int,
+      ltSecond :: Int
+}
+
+instance Show LongTime where
+    show (LongTime hour minute second) = printf "%02d:%02d:%02d" hour minute second
+
 data Sleep = Sleep {
-      date :: (Int,Int),
+      date :: Date,
       window :: Int,
-      toBed :: (Int,Int),
-      alarm :: (Int,Int),
-      almostAwakes :: [(Int,Int,Int)]
+      toBed :: ShortTime,
+      alarm :: ShortTime,
+      almostAwakes :: [LongTime]
 }
 
 instance Show Sleep where
@@ -30,21 +56,21 @@ instance Show Sleep where
              \Awake moments (" ++ show (length (almostAwakes s)) ++ "):\n" ++
              showAlmostAwakes (almostAwakes s)
 
-showAlmostAwakes :: [(Int,Int,Int)] -> String
+showAlmostAwakes :: [LongTime] -> String
 showAlmostAwakes = concat . zipWith format [1..]
     where format n aa = " Data " ++ show n ++ ":    " ++ show aa ++ "\n"
 
 parse :: [Int] -> Sleep
 parse lst = let ([_,month,day,_,window,toBed0,toBed1,alarm0,alarm1,cntData],rest) = splitAt 10 lst
-            in Sleep { date         = (month,day),
+            in Sleep { date         = Date day month,
                        window       = window,
-                       toBed        = (toBed0,toBed1),
-                       alarm        = (alarm0,alarm1),
+                       toBed        = ShortTime toBed0 toBed1,
+                       alarm        = ShortTime alarm0 alarm1,
                        almostAwakes = parseAlmostAwakes cntData rest
                      }
 
-parseAlmostAwakes :: Int -> [Int] -> [(Int,Int,Int)]
-parseAlmostAwakes count = map three . take count . groupN 3
+parseAlmostAwakes :: Int -> [Int] -> [LongTime]
+parseAlmostAwakes count = map (\(a,b,c) -> LongTime a b c) . map three . take count . groupN 3
 
 three :: [Int] -> (Int,Int,Int)
 three [a,b,c] = (a,b,c)
