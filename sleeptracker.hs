@@ -60,7 +60,7 @@ computeChecksum :: [Int] -> Int
 computeChecksum = flip mod 256 . sum . drop 1 . dropLast 2
 
 findChecksum :: [Int] -> Int
-findChecksum lst = head $ drop (length lst - 2) lst
+findChecksum lst = lst !! (length lst - 2)
 
 dropLast :: Int -> [a] -> [a]
 dropLast n str = take (length str - n) str
