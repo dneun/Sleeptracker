@@ -18,25 +18,16 @@ data Date = Date {
       month :: Int
 }
 
-instance Show Date where
-    show (Date day month) = printf "%02d.%02d." day month
-
 data ShortTime = ShortTime {
       stHour :: Int,
       stMinute :: Int
-    }
-
-instance Show ShortTime where
-    show (ShortTime hour minute) = printf "%02d:%02d" hour minute
+}
 
 data LongTime = LongTime {
       ltHour :: Int,
       ltMinute :: Int,
       ltSecond :: Int
 }
-
-instance Show LongTime where
-    show (LongTime hour minute second) = printf "%02d:%02d:%02d" hour minute second
 
 data Sleep = Sleep {
       date :: Date,
@@ -45,6 +36,15 @@ data Sleep = Sleep {
       alarm :: ShortTime,
       almostAwakes :: [LongTime]
 }
+
+instance Show Date where
+    show (Date day month) = printf "%02d.%02d." day month
+
+instance Show LongTime where
+    show (LongTime hour minute second) = printf "%02d:%02d:%02d" hour minute second
+
+instance Show ShortTime where
+    show (ShortTime hour minute) = printf "%02d:%02d" hour minute
 
 instance Show Sleep where
     show s = "Date:                  " ++ show (date s) ++ "\n\
