@@ -75,10 +75,9 @@ parse lst = let ([_,month,day,_,window,toBed0,toBed1,alarm0,alarm1,cntData],rest
 
 parseAlmostAwakes :: Int -> [Int] -> [LongTime]
 parseAlmostAwakes count = map (\[h,m,s] -> LongTime h m s) . take count . groupN 3
-
-groupN :: Int -> [a] -> [[a]]
-groupN n []  = []
-groupN n lst = take n lst : groupN n (drop n lst)
+    where groupN :: Int -> [a] -> [[a]]
+          groupN n []  = []
+          groupN n lst = take n lst : groupN n (drop n lst)
 
 checksumIsCorrect :: [Int] -> Bool
 checksumIsCorrect lst = findChecksum lst == computeChecksum lst
@@ -91,13 +90,10 @@ checksumIsCorrect lst = findChecksum lst == computeChecksum lst
           dropLast :: Int -> [a] -> [a]
           dropLast n = reverse . drop n . reverse
 
-seconds :: LongTime -> Int
-seconds (LongTime h m s) = h * 60 * 60 +
-                           m * 60 +
-                           s
-
 timeDiff :: LongTime -> LongTime -> TimeDiff
 timeDiff a b = TimeDiff $ foldl1 diffSeconds $ map seconds [a,b]
+    where seconds :: LongTime -> Int
+          seconds (LongTime h m s) = h * 60 * 60 + m * 60 + s
 
 diffSeconds :: Int -> Int -> Int
 diffSeconds a b | a < b     = b - a
