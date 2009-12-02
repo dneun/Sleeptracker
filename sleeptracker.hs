@@ -62,7 +62,7 @@ instance Show Sleep where
              \Window:                " ++ show (window s) ++ "\n\
              \\n\
              \Awake moments (" ++ show (length (almostAwakes s)) ++ "):\n" ++
-             showAlmostAwakes (almostAwakes s)
+             showAlmostAwakes (toBed s) (almostAwakes s)
 
 parse :: [Int] -> Sleep
 parse lst = let ([_,month,day,_,window,toBed0,toBed1,alarm0,alarm1,cntData],rest) = splitAt 10 lst
@@ -110,7 +110,8 @@ diffs f []       = []
 diffs f [x]      = []
 diffs f (x:y:xs) = f x y : diffs f (y:xs)
 
-showAlmostAwakes :: [LongTime] -> String
-showAlmostAwakes lst = concat $ intersperse "\n" $ zipWith3 format [1..] lst sleeps
+showAlmostAwakes :: ShortTime -> [LongTime] -> String
+showAlmostAwakes toBed lst = concat $ intersperse "\n" $ zipWith3 format [1..] lst sleeps
     where format n t d = printf "Data %2d:  %s   %s slept" (n :: Int) (show t) (show d)
-          sleeps = TimeDiff 0 : diffs timeDiff lst
+          sleeps = diffs timeDiff (expand toBed : lst)
+          expand (ShortTime h m) = LongTime h m 0
