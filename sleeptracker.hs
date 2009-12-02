@@ -101,13 +101,13 @@ diffSeconds a b | a < b     = b - a
     where toMidnight = midnight - a
           midnight   = 24 * 60 * 60
 
-diffs :: (a -> a -> b) -> [a] -> [b]
-diffs f []       = []
-diffs f [x]      = []
-diffs f (x:y:xs) = f x y : diffs f (y:xs)
-
 showAlmostAwakes :: ShortTime -> [LongTime] -> String
 showAlmostAwakes toBed lst = concat $ intersperse "\n" $ zipWith3 format [1..] lst sleeps
     where format n t d = printf "Data %2d:  %s   %s slept" (n :: Int) (show t) (show d)
           sleeps = diffs timeDiff (expand toBed : lst)
           expand (ShortTime h m) = LongTime h m 0
+
+diffs :: (a -> a -> b) -> [a] -> [b]
+diffs f []       = []
+diffs f [x]      = []
+diffs f (x:y:xs) = f x y : diffs f (y:xs)
