@@ -3,6 +3,7 @@ module Main where
 import Char (ord)
 import Control.Monad
 import Control.Monad.Loops (unfoldM)
+import Data.List (intersperse)
 import System.Hardware.Serialport
 import Text.Printf
 
@@ -51,7 +52,7 @@ instance Show ShortTime where
     show (ShortTime hour minute) = printf "%02d:%02d" hour minute
 
 instance Show TimeDiff where
-    show (TimeDiff seconds) = show (seconds `div` 60) ++ " minutes"
+    show (TimeDiff seconds) = printf "%2d minutes" (seconds `div` 60)
 
 instance Show Sleep where
     show s = "Date:                  " ++ show (date s) ++ "\n\
@@ -110,5 +111,6 @@ diffs f [x]      = []
 diffs f (x:y:xs) = f x y : diffs f (y:xs)
 
 showAlmostAwakes :: [LongTime] -> String
-showAlmostAwakes = concat . zipWith format [1..]
-    where format n aa = " Data " ++ show n ++ ":    " ++ show aa ++ "\n"
+showAlmostAwakes lst = concat $ intersperse "\n" $ zipWith3 format [1..] lst sleeps
+    where format n t d = printf "Data %2d:  %s   %s slept" (n :: Int) (show t) (show d)
+          sleeps = TimeDiff 0 : diffs timeDiff lst
