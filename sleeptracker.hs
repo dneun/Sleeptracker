@@ -63,10 +63,6 @@ instance Show Sleep where
              \Awake moments (" ++ show (length (almostAwakes s)) ++ "):\n" ++
              showAlmostAwakes (almostAwakes s)
 
-showAlmostAwakes :: [LongTime] -> String
-showAlmostAwakes = concat . zipWith format [1..]
-    where format n aa = " Data " ++ show n ++ ":    " ++ show aa ++ "\n"
-
 parse :: [Int] -> Sleep
 parse lst = let ([_,month,day,_,window,toBed0,toBed1,alarm0,alarm1,cntData],rest) = splitAt 10 lst
             in Sleep { date         = Date day month,
@@ -112,3 +108,7 @@ diffs :: (a -> a -> b) -> [a] -> [b]
 diffs f []       = []
 diffs f [x]      = []
 diffs f (x:y:xs) = f x y : diffs f (y:xs)
+
+showAlmostAwakes :: [LongTime] -> String
+showAlmostAwakes = concat . zipWith format [1..]
+    where format n aa = " Data " ++ show n ++ ":    " ++ show aa ++ "\n"
