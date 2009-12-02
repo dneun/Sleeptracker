@@ -41,7 +41,7 @@ instance Show Date where
     show (Date day month) = printf "%02d.%02d." day month
 
 instance Show LongTime where
-    show (LongTime hour minute second) = printf "%02d:%02d:%02d" hour minute second
+    show (LongTime h m s) = printf "%02d:%02d:%02d" h m s
 
 instance Show ShortTime where
     show (ShortTime hour minute) = printf "%02d:%02d" hour minute
