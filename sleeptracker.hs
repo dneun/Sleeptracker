@@ -37,6 +37,10 @@ data Sleep = Sleep {
       almostAwakes :: [LongTime]
 }
 
+data TimeDiff = TimeDiff {
+      tdSeconds :: Int
+}
+
 instance Show Date where
     show (Date day month) = printf "%02d.%02d." day month
 
@@ -45,6 +49,9 @@ instance Show LongTime where
 
 instance Show ShortTime where
     show (ShortTime hour minute) = printf "%02d:%02d" hour minute
+
+instance Show TimeDiff where
+    show (TimeDiff seconds) = show (seconds `div` 60) ++ " minutes"
 
 instance Show Sleep where
     show s = "Date:                  " ++ show (date s) ++ "\n\
@@ -86,3 +93,22 @@ checksumIsCorrect lst = findChecksum lst == computeChecksum lst
 
           dropLast :: Int -> [a] -> [a]
           dropLast n = reverse . drop n . reverse
+
+seconds :: LongTime -> Int
+seconds (LongTime h m s) = h * 60 * 60 +
+                           m * 60 +
+                           s
+
+timeDiff :: LongTime -> LongTime -> TimeDiff
+timeDiff a b = TimeDiff $ foldl1 diffSeconds $ map seconds [a,b]
+
+diffSeconds :: Int -> Int -> Int
+diffSeconds a b | a < b     = b - a
+                | otherwise = toMidnight + b
+    where toMidnight = midnight - a
+          midnight   = 24 * 60 * 60
+
+diffs :: (a -> a -> b) -> [a] -> [b]
+diffs f []       = []
+diffs f [x]      = []
+diffs f (x:y:xs) = f x y : diffs f (y:xs)
