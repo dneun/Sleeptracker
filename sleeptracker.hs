@@ -35,11 +35,16 @@ data Sleep = Sleep {
       window :: Int,
       toBed :: ShortTime,
       alarm :: ShortTime,
+      dataA :: DataA,
       almostAwakes :: [LongTime]
 }
 
 data TimeDiff = TimeDiff {
       tdSeconds :: Int
+}
+
+data DataA = DataA {
+      daSeconds :: Int
 }
 
 instance Show Date where
@@ -54,12 +59,16 @@ instance Show ShortTime where
 instance Show TimeDiff where
     show (TimeDiff seconds) = printf "%2d minutes" (seconds `div` 60)
 
+instance Show DataA where
+    show (DataA seconds) = printf "%02d:%02d min" (seconds `div` 60) (seconds `mod` 60)
+
 instance Show Sleep where
     show s = "Date:                  " ++ show (date s) ++ "\n\
              \To Bed:                " ++ show (toBed s) ++ "\n\
              \Alarm Time:            " ++ show (alarm s) ++ "\n\
              \Effective Alarm Time:  " ++ (show $ last $ almostAwakes s) ++ "\n\
              \Window:                " ++ show (window s) ++ "\n\
+             \Data A:                " ++ show (dataA s) ++ "\n\
              \\n\
              \Awake moments (" ++ show (length (almostAwakes s)) ++ "):\n" ++
              showAlmostAwakes (toBed s) (almostAwakes s)
@@ -70,8 +79,12 @@ parse lst = let ([_,month,day,_,window,toBed0,toBed1,alarm0,alarm1,cntData],rest
                        window       = window,
                        toBed        = ShortTime toBed0 toBed1,
                        alarm        = ShortTime alarm0 alarm1,
+                       dataA        = parseDataA $ drop (cntData * 3) rest,
                        almostAwakes = parseAlmostAwakes cntData rest
                      }
+
+parseDataA :: [Int] -> DataA
+parseDataA (x:y:_) = DataA (x + y * 0xff)
 
 parseAlmostAwakes :: Int -> [Int] -> [LongTime]
 parseAlmostAwakes count = map (\[h,m,s] -> LongTime h m s) . take count . groupN 3
