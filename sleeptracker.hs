@@ -68,7 +68,10 @@ instance Show Sleep where
              \Alarm Time:            " ++ show (alarm s) ++ "\n\
              \Effective Alarm Time:  " ++ (show $ last $ almostAwakes s) ++ "\n\
              \Window:                " ++ show (window s) ++ "\n\
-             \Data A:                " ++ show (dataA s) ++ "\n\
+             \Data A (Clock):        " ++ show (dataA s) ++ "\n\
+             \Data A (Calculated):   " ++ (show $ computeDataA (toBed s)
+                                           (last $ almostAwakes s)
+                                           (length $ almostAwakes s)) ++ "\n\
              \\n\
              \Awake moments (" ++ show (length (almostAwakes s)) ++ "):\n" ++
              showAlmostAwakes (toBed s) (almostAwakes s)
@@ -85,6 +88,10 @@ parse lst = let ([_,month,day,_,window,toBed0,toBed1,alarm0,alarm1,cntData],rest
 
 parseDataA :: [Int] -> DataA
 parseDataA (x:y:_) = DataA (x + y * 0xff)
+
+computeDataA :: ShortTime -> LongTime -> Int -> DataA
+computeDataA toBed awake count = DataA $ (`div` count) $ foldl1 diffSeconds $ map seconds [expand toBed,awake]
+    where expand (ShortTime h m) = LongTime h m 0
 
 parseAlmostAwakes :: Int -> [Int] -> [LongTime]
 parseAlmostAwakes count = map (\[h,m,s] -> LongTime h m s) . take count . groupN 3
@@ -111,8 +118,9 @@ showAlmostAwakes toBed lst = concat $ intersperse "\n" $ zipWith3 format [1..] l
 
 timeDiff :: LongTime -> LongTime -> TimeDiff
 timeDiff a b = TimeDiff $ foldl1 diffSeconds $ map seconds [a,b]
-    where seconds :: LongTime -> Int
-          seconds (LongTime h m s) = h * 60 * 60 + m * 60 + s
+
+seconds :: LongTime -> Int
+seconds (LongTime h m s) = h * 60 * 60 + m * 60 + s
 
 diffSeconds :: Int -> Int -> Int
 diffSeconds a b | a < b     = b - a
