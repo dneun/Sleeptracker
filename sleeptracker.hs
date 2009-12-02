@@ -81,12 +81,11 @@ groupN n lst = take n lst : groupN n (drop n lst)
 
 checksumIsCorrect :: [Int] -> Bool
 checksumIsCorrect lst = findChecksum lst == computeChecksum lst
+    where findChecksum :: [Int] -> Int
+          findChecksum lst = lst !! (length lst - 2)
 
-computeChecksum :: [Int] -> Int
-computeChecksum = flip mod 256 . sum . drop 1 . dropLast 2
+          computeChecksum :: [Int] -> Int
+          computeChecksum = flip mod 256 . sum . drop 1 . dropLast 2
 
-findChecksum :: [Int] -> Int
-findChecksum lst = lst !! (length lst - 2)
-
-dropLast :: Int -> [a] -> [a]
-dropLast n str = take (length str - n) str
+          dropLast :: Int -> [a] -> [a]
+          dropLast n = reverse . drop n . reverse
