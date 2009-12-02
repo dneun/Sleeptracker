@@ -57,7 +57,7 @@ instance Show ShortTime where
     show (ShortTime hour minute) = printf "%02d:%02d" hour minute
 
 instance Show TimeDiff where
-    show (TimeDiff seconds) = printf "%2d minutes" (seconds `div` 60)
+    show (TimeDiff seconds) = printf "%2d min" (seconds `div` 60)
 
 instance Show DataA where
     show (DataA seconds) = printf "%02d:%02d min" (seconds `div` 60) (seconds `mod` 60)
@@ -67,7 +67,7 @@ instance Show Sleep where
              \To Bed:                " ++ show (toBed s) ++ "\n\
              \Alarm Time:            " ++ show (alarm s) ++ "\n\
              \Effective Alarm Time:  " ++ (show $ last $ almostAwakes s) ++ "\n\
-             \Window:                " ++ show (window s) ++ "\n\
+             \Window:                " ++ show (window s) ++ " min\n\
              \Data A (Clock):        " ++ show (dataA s) ++ "\n\
              \Data A (Calculated):   " ++ (show $ computeDataA (toBed s)
                                            (last $ almostAwakes s)
@@ -112,7 +112,7 @@ checksumIsCorrect lst = findChecksum lst == computeChecksum lst
 
 showAlmostAwakes :: ShortTime -> [LongTime] -> String
 showAlmostAwakes toBed lst = concat $ intersperse "\n" $ zipWith3 format [1..] lst sleeps
-    where format n t d = printf "Data %2d:  %s   %s slept" (n :: Int) (show t) (show d)
+    where format n t d = printf " Data %2d: %s (slept:  %s)" (n :: Int) (show t) (show d)
           sleeps = diffs timeDiff (expand toBed : lst)
           expand (ShortTime h m) = LongTime h m 0
 
