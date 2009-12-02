@@ -90,6 +90,12 @@ checksumIsCorrect lst = findChecksum lst == computeChecksum lst
           dropLast :: Int -> [a] -> [a]
           dropLast n = reverse . drop n . reverse
 
+showAlmostAwakes :: ShortTime -> [LongTime] -> String
+showAlmostAwakes toBed lst = concat $ intersperse "\n" $ zipWith3 format [1..] lst sleeps
+    where format n t d = printf "Data %2d:  %s   %s slept" (n :: Int) (show t) (show d)
+          sleeps = diffs timeDiff (expand toBed : lst)
+          expand (ShortTime h m) = LongTime h m 0
+
 timeDiff :: LongTime -> LongTime -> TimeDiff
 timeDiff a b = TimeDiff $ foldl1 diffSeconds $ map seconds [a,b]
     where seconds :: LongTime -> Int
@@ -100,12 +106,6 @@ diffSeconds a b | a < b     = b - a
                 | otherwise = toMidnight + b
     where toMidnight = midnight - a
           midnight   = 24 * 60 * 60
-
-showAlmostAwakes :: ShortTime -> [LongTime] -> String
-showAlmostAwakes toBed lst = concat $ intersperse "\n" $ zipWith3 format [1..] lst sleeps
-    where format n t d = printf "Data %2d:  %s   %s slept" (n :: Int) (show t) (show d)
-          sleeps = diffs timeDiff (expand toBed : lst)
-          expand (ShortTime h m) = LongTime h m 0
 
 diffs :: (a -> a -> b) -> [a] -> [b]
 diffs f []       = []
