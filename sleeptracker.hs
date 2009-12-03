@@ -94,10 +94,10 @@ computeDataA toBed awake count = DataA $ (`div` count) $ foldl1 diffSeconds $ ma
     where expand (ShortTime h m) = LongTime h m 0
 
 parseAlmostAwakes :: Int -> [Int] -> [LongTime]
-parseAlmostAwakes count = map (\[h,m,s] -> LongTime h m s) . take count . groupN 3
-    where groupN :: Int -> [a] -> [[a]]
-          groupN n []  = []
-          groupN n lst = take n lst : groupN n (drop n lst)
+parseAlmostAwakes count = take count . map3 LongTime
+    where map3 :: (a -> a -> a -> b) -> [a] -> [b]
+          map3 f []         = []
+          map3 f (x:y:z:xs) = f x y z : map3 f xs
 
 checksumIsCorrect :: [Int] -> Bool
 checksumIsCorrect lst = findChecksum lst == computeChecksum lst
