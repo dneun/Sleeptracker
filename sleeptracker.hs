@@ -12,8 +12,7 @@ main = do s <- openSerial "/dev/ttyUSB0" defaultSerialSettings { baudRate = B240
           sendChar s 'V'
           response <- unfoldM (fmap (fmap ord) (recvChar s))
           unless (checksumIsCorrect response) (error "Checksum Error.")
-          now <- getClockTime
-          ct <- toCalendarTime now
+          ct <- (getClockTime >>= toCalendarTime)
           print $ parse response (ctYear ct)
           closeSerial s
 
