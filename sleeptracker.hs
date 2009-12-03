@@ -6,17 +6,21 @@ import Control.Monad.Loops (unfoldM)
 import Data.List (intersperse)
 import System.Hardware.Serialport
 import Text.Printf
+import Time hiding (TimeDiff)
 
 main = do s <- openSerial "/dev/ttyUSB0" defaultSerialSettings { baudRate = B2400 }
           sendChar s 'V'
           response <- unfoldM (fmap (fmap ord) (recvChar s))
           unless (checksumIsCorrect response) (error "Checksum Error.")
-          print $ parse response
+          now <- getClockTime
+          ct <- toCalendarTime now
+          print $ parse response (ctYear ct)
           closeSerial s
 
 data Date = Date {
       day :: Int,
-      month :: Int
+      month :: Int,
+      year :: Int
 }
 
 data ShortTime = ShortTime {
@@ -48,7 +52,7 @@ data DataA = DataA {
 }
 
 instance Show Date where
-    show (Date day month) = printf "%02d.%02d." day month
+    show (Date day month year) = printf "%02d.%02d.%04d" day month year
 
 instance Show LongTime where
     show (LongTime h m s) = printf "%02d:%02d:%02d" h m s
@@ -77,22 +81,24 @@ instance Show Sleep where
              \Awake moments (" ++ show (length (almostAwakes s)) ++ "):\n" ++
              showAlmostAwakes (toBed s) (almostAwakes s) ++ "\n"
 
-parse :: [Int] -> Sleep
-parse lst = let ([_,month,day,_,window,toBed0,toBed1,alarm0,alarm1,cntData],rest) = splitAt 10 lst
-            in Sleep { date         = Date day month,
-                       window       = window,
-                       toBed        = ShortTime toBed0 toBed1,
-                       alarm        = ShortTime alarm0 alarm1,
-                       dataA        = parseDataA $ drop (cntData * 3) rest,
-                       almostAwakes = parseAlmostAwakes cntData rest
-                     }
+parse :: [Int] -> Int -> Sleep
+parse lst year = 
+    let ([_,month,day,_,window,toBed0,toBed1,alarm0,alarm1,cntData],rest) = splitAt 10 lst
+    in Sleep { date         = Date day month year,
+               window       = window,
+               toBed        = ShortTime toBed0 toBed1,
+               alarm        = ShortTime alarm0 alarm1,
+               dataA        = parseDataA $ drop (cntData * 3) rest,
+               almostAwakes = parseAlmostAwakes cntData rest
+             }
 
 parseDataA :: [Int] -> DataA
 parseDataA = DataA . sum . zipWith (*) [1,0xff]
 
 computeDataA :: ShortTime -> LongTime -> Int -> DataA
-computeDataA toBed awake count = DataA $ (`div` count) $ foldl1 diffSeconds $ map seconds [expand toBed,awake]
-    where expand (ShortTime h m) = LongTime h m 0
+computeDataA toBed awake count = 
+    DataA $ (`div` count) $ foldl1 diffSeconds $ map seconds [expand toBed,awake]
+        where expand (ShortTime h m) = LongTime h m 0
 
 parseAlmostAwakes :: Int -> [Int] -> [LongTime]
 parseAlmostAwakes count = take count . map3 LongTime
