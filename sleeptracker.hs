@@ -87,7 +87,7 @@ parse lst = let ([_,month,day,_,window,toBed0,toBed1,alarm0,alarm1,cntData],rest
                      }
 
 parseDataA :: [Int] -> DataA
-parseDataA (x:y:_) = DataA (x + y * 0xff)
+parseDataA = DataA . sum . zipWith (*) [1,0xff]
 
 computeDataA :: ShortTime -> LongTime -> Int -> DataA
 computeDataA toBed awake count = DataA $ (`div` count) $ foldl1 diffSeconds $ map seconds [expand toBed,awake]
