@@ -35,7 +35,7 @@ data LongTime = LongTime {
 
 data Sleep = Sleep {
       date :: Date,
-      window :: Int,
+      window :: Window,
       toBed :: ShortTime,
       alarm :: ShortTime,
       dataA :: DataA,
@@ -48,6 +48,10 @@ data TimeDiff = TimeDiff {
 
 data DataA = DataA {
       daSeconds :: Int
+}
+
+data Window = Window {
+      minutes :: Int
 }
 
 instance Show Date where
@@ -65,13 +69,16 @@ instance Show TimeDiff where
 instance Show DataA where
     show (DataA seconds) = printf "%02d:%02d min" (seconds `div` 60) (seconds `mod` 60)
 
+instance Show Window where
+    show (Window minutes) = show minutes ++ " min"
+
 instance Show Sleep where
     show s = "\n\
              \Date:                  " ++ show (date s) ++ "\n\
              \To Bed:                " ++ show (toBed s) ++ "\n\
              \Alarm Time:            " ++ show (alarm s) ++ "\n\
              \Effective Alarm Time:  " ++ (show $ last $ almostAwakes s) ++ "\n\
-             \Window:                " ++ show (window s) ++ " min\n\
+             \Window:                " ++ show (window s) ++ "\n\
              \Data A (Clock):        " ++ show (dataA s) ++ "\n\
              \Data A (Calculated):   " ++ show (computeDataA s) ++ "\n\
              \\n\
@@ -83,7 +90,7 @@ parse lst year =
     let ([_,month,day,_,window,toBed0,toBed1,alarm0,alarm1,cntData],rest) = splitAt 10 lst
         (left,right) = splitAt (cntData * 3) rest
     in Sleep { date         = Date day month year,
-               window       = window,
+               window       = Window window,
                toBed        = ShortTime toBed0 toBed1,
                alarm        = ShortTime alarm0 alarm1,
                almostAwakes = map3 LongTime left,
