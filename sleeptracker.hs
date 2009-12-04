@@ -107,10 +107,6 @@ computeDataA sleep =
               count = length (almostAwakes sleep)
               awake = last (almostAwakes sleep)
 
-map3 :: (a -> a -> a -> b) -> [a] -> [b]
-map3 f []         = []
-map3 f (x:y:z:xs) = f x y z : map3 f xs
-
 checksumIsCorrect :: [Int] -> Bool
 checksumIsCorrect lst = findChecksum lst == computeChecksum lst
     where findChecksum :: [Int] -> Int
@@ -139,6 +135,10 @@ diffSeconds a b | a < b     = b - a
                 | otherwise = toMidnight + b
     where toMidnight = midnight - a
           midnight   = 24 * 60 * 60
+
+map3 :: (a -> a -> a -> b) -> [a] -> [b]
+map3 f []         = []
+map3 f (x:y:z:xs) = f x y z : map3 f xs
 
 diffs :: (a -> a -> b) -> [a] -> [b]
 diffs f []       = []
