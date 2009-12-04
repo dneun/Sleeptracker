@@ -86,8 +86,8 @@ parse lst year =
                window       = window,
                toBed        = ShortTime toBed0 toBed1,
                alarm        = ShortTime alarm0 alarm1,
-               dataA        = parseDataA right,
-               almostAwakes = map3 LongTime left
+               almostAwakes = map3 LongTime left,
+               dataA        = parseDataA right
              }
 
 parseDataA :: [Int] -> DataA
