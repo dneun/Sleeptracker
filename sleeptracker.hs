@@ -83,12 +83,13 @@ instance Show Sleep where
 parse :: [Int] -> Int -> Sleep
 parse lst year = 
     let ([_,month,day,_,window,toBed0,toBed1,alarm0,alarm1,cntData],rest) = splitAt 10 lst
+        (left,right) = splitAt (cntData * 3) rest
     in Sleep { date         = Date day month year,
                window       = window,
                toBed        = ShortTime toBed0 toBed1,
                alarm        = ShortTime alarm0 alarm1,
-               dataA        = parseDataA $ drop (cntData * 3) rest,
-               almostAwakes = parseAlmostAwakes cntData rest
+               dataA        = parseDataA right,
+               almostAwakes = map3 LongTime left
              }
 
 parseDataA :: [Int] -> DataA
@@ -99,11 +100,9 @@ computeDataA toBed awake count =
     DataA $ (`div` count) $ foldl1 diffSeconds $ map seconds [expand toBed,awake]
         where expand (ShortTime h m) = LongTime h m 0
 
-parseAlmostAwakes :: Int -> [Int] -> [LongTime]
-parseAlmostAwakes count = take count . map3 LongTime
-    where map3 :: (a -> a -> a -> b) -> [a] -> [b]
-          map3 f []         = []
-          map3 f (x:y:z:xs) = f x y z : map3 f xs
+map3 :: (a -> a -> a -> b) -> [a] -> [b]
+map3 f []         = []
+map3 f (x:y:z:xs) = f x y z : map3 f xs
 
 checksumIsCorrect :: [Int] -> Bool
 checksumIsCorrect lst = findChecksum lst == computeChecksum lst
