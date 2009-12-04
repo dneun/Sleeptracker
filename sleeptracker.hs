@@ -11,10 +11,14 @@ import Time hiding (TimeDiff)
 main = do s <- openSerial "/dev/ttyUSB0" defaultSerialSettings { baudRate = B2400 }
           sendChar s 'V'
           response <- unfoldM (fmap (fmap ord) (recvChar s))
+          when (length response < 15) (error short)
           unless (checksumIsCorrect response) (error "Checksum Error.")
           ct <- (getClockTime >>= toCalendarTime)
           print $ parse response (ctYear ct)
           closeSerial s
+
+short = "Error while reading from Sleeptracker!\n\
+         \Watch showing DATA screen?\n"
 
 data Date = Date {
       day :: Int,
