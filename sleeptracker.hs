@@ -73,9 +73,7 @@ instance Show Sleep where
              \Effective Alarm Time:  " ++ (show $ last $ almostAwakes s) ++ "\n\
              \Window:                " ++ show (window s) ++ " min\n\
              \Data A (Clock):        " ++ show (dataA s) ++ "\n\
-             \Data A (Calculated):   " ++ (show $ computeDataA (toBed s)
-                                           (last $ almostAwakes s)
-                                           (length $ almostAwakes s)) ++ "\n\
+             \Data A (Calculated):   " ++ show (computeDataA s) ++ "\n\
              \\n\
              \Awake moments (" ++ show (length (almostAwakes s)) ++ "):\n" ++
              showAlmostAwakes (toBed s) (almostAwakes s) ++ "\n"
@@ -95,10 +93,12 @@ parse lst year =
 parseDataA :: [Int] -> DataA
 parseDataA = DataA . sum . zipWith (*) [1,0xff]
 
-computeDataA :: ShortTime -> LongTime -> Int -> DataA
-computeDataA toBed awake count = 
-    DataA $ (`div` count) $ foldl1 diffSeconds $ map seconds [expand toBed,awake]
+computeDataA :: Sleep -> DataA
+computeDataA sleep = 
+    DataA $ (`div` count) $ foldl1 diffSeconds $ map seconds [expand (toBed sleep),awake]
         where expand (ShortTime h m) = LongTime h m 0
+              count = length (almostAwakes sleep)
+              awake = last (almostAwakes sleep)
 
 map3 :: (a -> a -> a -> b) -> [a] -> [b]
 map3 f []         = []
