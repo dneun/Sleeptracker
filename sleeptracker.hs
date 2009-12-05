@@ -163,3 +163,6 @@ csv s = printf "%s;%s;%s;%s;%s;%s;%s;%s"
         ++
         (concat $ map (printf ";%s" . show) $ almostAwakes s)
         ++ "\n"
+
+xml :: Sleep -> String
+xml = undefined
