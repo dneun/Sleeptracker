@@ -54,13 +54,13 @@ instance Show ShortTime where
     show (ShortTime hour minute) = printf "%02d:%02d" hour minute
 
 instance Show TimeDiff where
-    show (TimeDiff seconds) = printf "%2d min" (seconds `div` 60)
+    show (TimeDiff seconds) = printf "%2d" (seconds `div` 60)
 
 instance Show DataA where
-    show (DataA seconds) = printf "%02d:%02d min" (seconds `div` 60) (seconds `mod` 60)
+    show (DataA seconds) = printf "%02d:%02d" (seconds `div` 60) (seconds `mod` 60)
 
 instance Show Window where
-    show (Window minutes) = show minutes ++ " min"
+    show (Window minutes) = show minutes
 
 instance Show Sleep where
     show s = "\n\
@@ -68,9 +68,9 @@ instance Show Sleep where
              \To Bed:                " ++ show (toBed s) ++ "\n\
              \Alarm Time:            " ++ show (alarm s) ++ "\n\
              \Effective Alarm Time:  " ++ (show $ last $ almostAwakes s) ++ "\n\
-             \Window:                " ++ show (window s) ++ "\n\
-             \Data A (Clock):        " ++ show (dataA s) ++ "\n\
-             \Data A (Calculated):   " ++ show (computeDataA s) ++ "\n\
+             \Window:                " ++ show (window s) ++ " min\n\
+             \Data A (Clock):        " ++ show (dataA s) ++ " min\n\
+             \Data A (Calculated):   " ++ show (computeDataA s) ++ " min\n\
              \\n\
              \Awake moments (" ++ show (length (almostAwakes s)) ++ "):\n" ++
              showAlmostAwakes (toBed s) (almostAwakes s) ++ "\n"
@@ -110,7 +110,7 @@ checksumIsCorrect lst = findChecksum lst == computeChecksum lst
 
 showAlmostAwakes :: ShortTime -> [LongTime] -> String
 showAlmostAwakes toBed lst = concat $ intersperse "\n" $ zipWith3 format [1..] lst sleeps
-    where format n t d = printf " Data %2d: %s (slept:  %s)" (n :: Int) (show t) (show d)
+    where format n t d = printf " Data %2d: %s (slept:  %s min)" (n :: Int) (show t) (show d)
           sleeps = diffs timeDiff (expand toBed : lst)
           expand (ShortTime h m) = LongTime h m 0
 
@@ -134,3 +134,17 @@ diffs :: (a -> a -> b) -> [a] -> [b]
 diffs f []       = []
 diffs f [x]      = []
 diffs f (x:y:xs) = f x y : diffs f (y:xs)
+
+csv :: Sleep -> String
+csv s = printf "%s;%s;%s;%s;%s;%s;%s;%s" 
+        (show $ date s)
+        (show $ toBed s)
+        (show $ alarm s)
+        (show $ last $ almostAwakes s)
+        (show $ window s)
+        (show $ dataA s)
+        (show $ computeDataA s)
+        (show $ length $ almostAwakes s)
+        ++
+        (concat $ map (printf ";%s" . show) $ almostAwakes s)
+        ++ "\n"
