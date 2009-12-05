@@ -23,22 +23,11 @@ currentYear = getClockTime >>= toCalendarTime >>= return . ctYear
 short = "Error while reading from Sleeptracker!\n\
          \Watch showing DATA screen?\n"
 
-data Date = Date {
-      day :: Int,
-      month :: Int,
-      year :: Int
-}
+data Date = Date { day, month, year :: Int }
 
-data ShortTime = ShortTime {
-      stHour :: Int,
-      stMinute :: Int
-}
+data ShortTime = ShortTime { stHour, stMinute :: Int }
 
-data LongTime = LongTime {
-      ltHour :: Int,
-      ltMinute :: Int,
-      ltSecond :: Int
-}
+data LongTime = LongTime { ltHour, ltMinute, ltSecond :: Int }
 
 data Sleep = Sleep {
       date :: Date,
@@ -49,17 +38,11 @@ data Sleep = Sleep {
       almostAwakes :: [LongTime]
 }
 
-data TimeDiff = TimeDiff {
-      tdSeconds :: Int
-}
+data TimeDiff = TimeDiff { tdSeconds :: Int }
 
-data DataA = DataA {
-      daSeconds :: Int
-}
+data DataA = DataA { daSeconds :: Int }
 
-data Window = Window {
-      minutes :: Int
-}
+data Window = Window { minutes :: Int }
 
 instance Show Date where
     show (Date day month year) = printf "%02d.%02d.%04d" day month year
