@@ -135,6 +135,21 @@ diffs f []       = []
 diffs f [x]      = []
 diffs f (x:y:xs) = f x y : diffs f (y:xs)
 
+browser :: Sleep -> String
+browser s = printf "%s \"%s?%s\" &" browser uploadURL urlParam
+    where browser = "firefox"
+          uploadURL = "http://www.sleeptracker.net/import.php"
+          urlParam :: String
+          urlParam = printf "a=%s&w=%s&t=%s&dt=%s&da=%s"
+                     (show $ alarm s)
+                     (show $ window s)
+                     (show $ toBed s)
+                     (format $ almostAwakes s)
+                     (show $ dataA s)
+          format :: [LongTime] -> String
+          format = concat . intersperse "," . map (show . shorten)
+          shorten (LongTime h m s) = ShortTime h m
+
 csv :: Sleep -> String
 csv s = printf "%s;%s;%s;%s;%s;%s;%s;%s" 
         (show $ date s)
