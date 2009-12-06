@@ -18,7 +18,7 @@ main = do s <- openSerial "/dev/ttyUSB0" defaultSerialSettings { baudRate = B240
           closeSerial s
 
 currentYear :: IO Int
-currentYear = getClockTime >>= toCalendarTime >>= return . ctYear
+currentYear = liftM ctYear $ getClockTime >>= toCalendarTime
 
 short = "Error while reading from Sleeptracker!\n\
          \Watch showing DATA screen?\n"
