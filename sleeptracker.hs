@@ -1,6 +1,7 @@
 module Main where
 
 import Char (ord)
+import Control.Applicative ((<$>))
 import Control.Monad
 import Control.Monad.Loops (unfoldM)
 import Data.List (intersperse)
@@ -10,7 +11,7 @@ import Time hiding (TimeDiff)
 
 main = do s <- openSerial "/dev/ttyUSB0" defaultSerialSettings { baudRate = B2400 }
           sendChar s 'V'
-          response <- unfoldM (fmap (fmap ord) (recvChar s))
+          response <- unfoldM $ fmap ord <$> recvChar s
           when (length response < 15) (error short)
           unless (checksumIsCorrect response) (error "Checksum Error.")
           year <- currentYear
