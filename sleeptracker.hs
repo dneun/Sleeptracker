@@ -113,7 +113,7 @@ parseInt :: Parser Int
 parseInt = tokenPrim showIdent nextPos testIdent
     where showIdent i     = show i
           nextPos pos i _ = incSourceColumn pos i
-          testIdent c     = Just c
+          testIdent i     = Just i
 
 run = parseTest :: Parser Sleep -> [Int] -> IO ()
 
