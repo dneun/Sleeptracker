@@ -115,7 +115,7 @@ parseInt = tokenPrim showIdent nextPos testIdent
           nextPos pos i _ = incSourceColumn pos i
           testIdent c     = Just c
 
-run = parseTest :: Parsec [Int] () Sleep -> [Int] -> IO ()
+run = parseTest :: Parser Sleep -> [Int] -> IO ()
 
 --
 
