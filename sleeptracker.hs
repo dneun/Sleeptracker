@@ -97,11 +97,6 @@ sleepParser year = parseInt                >>
       parseDate :: Int -> Parser Date
       parseDate year = (\(m:d:_) -> Date d m year) <$> count 2 parseInt
 
-      parseInt :: (Stream s m Int) => ParsecT s u m Int
-      parseInt = tokenPrim (\c -> show [c])
-                 (\pos c _cs -> incSourceColumn pos c)
-                 (\c -> Just c)
-
       parseDataA :: Parser DataA
       parseDataA = DataA . sum . zipWith (*) [1,0xff] <$> count 2 parseInt
 
@@ -113,6 +108,12 @@ sleepParser year = parseInt                >>
 
       parseLongTime :: Parser LongTime
       parseLongTime = (\(h:m:s:_) -> LongTime h m s) <$> count 3 parseInt
+
+parseInt :: Parser Int
+parseInt = tokenPrim showIdent nextPos testIdent
+    where showIdent i     = show i
+          nextPos pos i _ = incSourceColumn pos i
+          testIdent c     = Just c
 
 run = parseTest :: Parsec [Int] () Sleep -> [Int] -> IO ()
 
