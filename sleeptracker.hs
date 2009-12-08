@@ -1,4 +1,3 @@
-{-# LANGUAGE FlexibleContexts #-}
 module Main where
 
 import Char (ord)
@@ -80,7 +79,7 @@ instance Show Sleep where
              \Awake moments (" ++ show (length (almostAwakes s)) ++ "):\n" ++
              showAlmostAwakes (toBed s) (almostAwakes s) ++ "\n"
 
-type Parser = Parsec [Int] ()
+type Parser a = Parsec [Int] () a
 
 sleepParser :: Int -> Parser Sleep
 sleepParser year = parseInt                >>
