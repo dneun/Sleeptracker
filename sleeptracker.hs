@@ -93,13 +93,7 @@ sleepParser year = parseInt                >>
                    parseDataA              >>= \dataA ->
                    return $ Sleep date window toBed alarm dataA almostAwakes
 
-run :: Show a => Parser a -> [Int] -> IO ()
-run p input
-        = case (parse p "" input) of
-            Left err -> do{ putStr "parse error at "
-                          ; print err
-                          }
-            Right x  -> print x
+run = parseTest :: Parsec [Int] () Sleep -> [Int] -> IO ()
         
 parseDate :: Int -> Parser Date
 parseDate year = (\(m:d:_) -> Date d m year) <$> count 2 parseInt
