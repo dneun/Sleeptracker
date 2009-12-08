@@ -81,20 +81,6 @@ instance Show Sleep where
              \Awake moments (" ++ show (length (almostAwakes s)) ++ "):\n" ++
              showAlmostAwakes (toBed s) (almostAwakes s) ++ "\n"
 
-{-
-parse :: [Int] -> Int -> Sleep
-parse lst year = 
-    let ([_,month,day,_,window,toBed0,toBed1,alarm0,alarm1,cntData],rest) = splitAt 10 lst
-        (left,right) = splitAt (cntData * 3) rest
-    in Sleep { date         = Date day month year,
-               window       = Window window,
-               toBed        = ShortTime toBed0 toBed1,
-               alarm        = ShortTime alarm0 alarm1,
-               almostAwakes = map3 LongTime left,
-               dataA        = parseDataA right
-             } 
--}
-
 sleepParser :: Int -> Parser Sleep
 sleepParser year = parseInt                >>
                    parseDate year          >>= \date ->
