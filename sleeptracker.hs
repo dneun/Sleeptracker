@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 module Main where
 
 import Char (ord)
@@ -7,6 +8,10 @@ import Control.Monad.Loops (unfoldM)
 import Data.List (intersperse)
 import System.Hardware.Serialport
 import Text.Printf
+import Text.ParserCombinators.Parsec hiding (Parser)
+import Text.ParserCombinators.Parsec.Pos
+import Text.Parsec.Prim
+--import Text.ParserCombinators.Parsec.Prim hiding (Parser)
 import Time hiding (TimeDiff)
 
 main = do s <- openSerial "/dev/ttyUSB0" defaultSerialSettings { baudRate = B2400 }
@@ -15,7 +20,7 @@ main = do s <- openSerial "/dev/ttyUSB0" defaultSerialSettings { baudRate = B240
           when (length response < 15) (error short)
           unless (checksumIsCorrect response) (error "Checksum Error.")
           year <- currentYear
-          print $ parse response year
+          run (sleepParser year) response
           closeSerial s
 
 currentYear :: IO Int
@@ -76,6 +81,7 @@ instance Show Sleep where
              \Awake moments (" ++ show (length (almostAwakes s)) ++ "):\n" ++
              showAlmostAwakes (toBed s) (almostAwakes s) ++ "\n"
 
+{-
 parse :: [Int] -> Int -> Sleep
 parse lst year = 
     let ([_,month,day,_,window,toBed0,toBed1,alarm0,alarm1,cntData],rest) = splitAt 10 lst
@@ -86,10 +92,52 @@ parse lst year =
                alarm        = ShortTime alarm0 alarm1,
                almostAwakes = map3 LongTime left,
                dataA        = parseDataA right
-             }
+             } 
+-}
 
-parseDataA :: [Int] -> DataA
-parseDataA = DataA . sum . zipWith (*) [1,0xff]
+sleepParser :: Int -> Parser Sleep
+sleepParser year = parseInt                >>
+                   parseDate year          >>= \date ->
+                   parseInt                >>
+                   parseWindow             >>= \window ->
+                   parseShortTime          >>= \toBed ->
+                   parseShortTime          >>= \alarm ->
+                   parseInt                >>= \cnt ->
+                   count cnt parseLongTime >>= \almostAwakes ->
+                   parseDataA              >>= \dataA ->
+                   return $ Sleep date window toBed alarm dataA almostAwakes
+
+run :: Show a => Parser a -> [Int] -> IO ()
+run p input
+        = case (parse p "" input) of
+            Left err -> do{ putStr "parse error at "
+                          ; print err
+                          }
+            Right x  -> print x
+        
+parseDate :: Int -> Parser Date
+parseDate year = (\(m:d:_) -> Date d m year) <$> count 2 parseInt
+
+type Parser = Parsec [Int] ()
+
+parseInt :: (Stream s m Int) => ParsecT s u m Int
+parseInt = tokenPrim (\c -> show [c])
+           (\pos c _cs -> incSourceColumn pos c)
+           (\c -> Just c)
+
+parseDataA :: Parser DataA
+parseDataA = DataA . sum . zipWith (*) [1,0xff] <$> count 2 parseInt
+
+parseWindow :: Parser Window
+parseWindow = Window <$> parseInt
+
+parseShortTime :: Parser ShortTime
+parseShortTime = (\(h:m:_) -> ShortTime h m) <$> count 2 parseInt
+
+parseLongTime :: Parser LongTime
+parseLongTime = (\(h:m:s:_) -> LongTime h m s) <$> count 3 parseInt
+
+--
 
 computeDataA :: Sleep -> DataA
 computeDataA sleep = 
