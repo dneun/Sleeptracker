@@ -14,12 +14,9 @@ main = do s <- openSerial "/dev/ttyUSB0" defaultSerialSettings { baudRate = B240
           response <- unfoldM $ fmap ord <$> recvChar s
           when (length response < 15) (error short)
           unless (checksumIsCorrect response) (error "Checksum Error.")
-          year <- currentYear
+          year <- ctYear <$> (toCalendarTime =<< getClockTime)
           print $ parse response year
           closeSerial s
-
-currentYear :: IO Int
-currentYear = liftM ctYear $ getClockTime >>= toCalendarTime
 
 short = "Error while reading from Sleeptracker!\n\
          \Watch showing DATA screen?\n"
