@@ -2,15 +2,13 @@ module Main where
 
 import Char (ord)
 import Control.Applicative ((<$>))
-import Control.Monad
+import Control.Monad (when,unless)
 import Control.Monad.Loops (unfoldM)
 import Data.List (intersperse)
 import System.Hardware.Serialport
-import Text.Printf
-import Text.ParserCombinators.Parsec hiding (Parser)
-import Text.ParserCombinators.Parsec.Pos
-import Text.Parsec.Prim
-import Time hiding (TimeDiff)
+import Text.Printf (printf)
+import Text.ParserCombinators.Parsec (GenParser,count,tokenPrim,parseTest)
+import Time (getClockTime,toCalendarTime,ctYear)
 
 main = do s <- openSerial "/dev/ttyUSB0" defaultSerialSettings { baudRate = B2400 }
           sendChar s 'V'
@@ -76,7 +74,7 @@ instance Show Sleep where
              \Awake moments (" ++ show (length (almostAwakes s)) ++ "):\n" ++
              showAlmostAwakes (toBed s) (almostAwakes s) ++ "\n"
 
-type Parser a = Parsec [Int] () a
+type Parser a = GenParser Int () a
 
 sleepParser :: Int -> Parser Sleep
 sleepParser year = parseInt                >>
