@@ -132,9 +132,7 @@ map3 f []         = []
 map3 f (x:y:z:xs) = f x y z : map3 f xs
 
 diffs :: (a -> a -> b) -> [a] -> [b]
-diffs f []       = []
-diffs f [x]      = []
-diffs f (x:y:xs) = f x y : diffs f (y:xs)
+diffs f lst = zipWith f lst (tail lst)
 
 browser :: Sleep -> String
 browser s = printf "%s \"%s?%s\" &" browser uploadURL urlParam
