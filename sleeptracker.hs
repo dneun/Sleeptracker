@@ -147,9 +147,7 @@ diffSeconds a b | a < b     = b - a
           midnight   = 24 * 60 * 60
 
 diffs :: (a -> a -> b) -> [a] -> [b]
-diffs f []       = []
-diffs f [x]      = []
-diffs f (x:y:xs) = f x y : diffs f (y:xs)
+diffs f lst = zipWith f lst (tail lst)
 
 browser :: Sleep -> String
 browser s = printf "%s \"%s?%s\" &" browser uploadURL urlParam
