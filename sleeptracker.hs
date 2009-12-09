@@ -109,7 +109,7 @@ sleepParser year = parseInt                >>
       parseLongTime = (\(h:m:s:_) -> LongTime h m s) <$> count 3 parseInt
 
       parseInt :: Parser Int
-      parseInt = tokenPrim show (\pos i _ -> incSourceColumn pos i) Just
+      parseInt = tokenPrim show (\p _ _ -> p) Just
 
 run = parseTest :: Parser Sleep -> [Int] -> IO ()
 
