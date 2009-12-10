@@ -77,16 +77,16 @@ instance Show Sleep where
 type Parser a = GenParser Int () a
 
 sleepParser :: Int -> Parser Sleep
-sleepParser year = parseInt                >>
-                   parseDate year          >>= \date ->
-                   parseInt                >>
-                   parseWindow             >>= \window ->
-                   parseShortTime          >>= \toBed ->
-                   parseShortTime          >>= \alarm ->
-                   parseInt                >>= \cnt ->
-                   count cnt parseLongTime >>= \almostAwakes ->
-                   parseDataA              >>= \dataA ->
-                   return $ Sleep date window toBed alarm dataA almostAwakes
+sleepParser year = do parseInt
+                      date <- parseDate year
+                      parseInt
+                      window <- parseWindow
+                      toBed <- parseShortTime
+                      alarm <- parseShortTime
+                      n <- parseInt
+                      almostAwakes <- count n parseLongTime
+                      dataA <- parseDataA
+                      return $ Sleep date window toBed alarm dataA almostAwakes
     where
       parseDate :: Int -> Parser Date
       parseDate year = (\(m:d:_) -> Date d m year) <$> count 2 parseInt
