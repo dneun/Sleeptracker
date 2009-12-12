@@ -60,7 +60,6 @@ instance Show DataA where
 
 instance Show Window where
     show (Window minutes) = show minutes
-
 instance Show Sleep where
     show s = "\n\
              \Date:                  " ++ show (date s) ++ "\n\
@@ -179,4 +178,24 @@ csv s = printf "%s;%s;%s;%s;%s;%s;%s;%s"
         ++ ";\n"
 
 xml :: Sleep -> String
-xml = undefined
+xml s = printf "<sleepRecord date=\"%s\">\n\
+               \   <toBed>%s</toBed>\n\
+               \   <alarmTime>%s</alarmTime>\n\
+               \    <effectiveAlarmTime>%s</effectiveAlarmTime>\n\
+               \   <window>%s</window>\n\
+               \   <dataA clc=\"%s\">%s</dataA>\n\
+               \   <awakeMoments cnt=\"%s\">\n\
+               \   %s\
+               \   </awakeMoments>\n\
+               \<sleepRecord>\n"
+               (show $ date s)
+               (show $ toBed s)
+               (show $ alarm s)
+               (show $ last $ almostAwakes s)
+               (show $ window s)
+               (show $ dataA s)
+               (show $ computeDataA s)
+               (show $ length $ almostAwakes s)
+               (concat $ zipWith format [1..] (almostAwakes s))
+    where format :: Int -> LongTime -> String
+          format n a = printf "<data count=\"%d\">%s</data>\n" n (show a)
