@@ -60,6 +60,7 @@ instance Show DataA where
 
 instance Show Window where
     show (Window minutes) = show minutes
+
 instance Show Sleep where
     show s = "\n\
              \Date:                  " ++ show (date s) ++ "\n\
