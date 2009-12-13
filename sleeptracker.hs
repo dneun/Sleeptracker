@@ -1,6 +1,6 @@
 module Main where
 
-import Char (ord)
+import Char (ord,toUpper)
 import Control.Applicative ((<$>))
 import Control.Monad (when,unless)
 import Control.Monad.Loops (unfoldM)
@@ -22,7 +22,7 @@ data Output = Text
 main = do args <- getArgs
           let (format,device) = case (length args) of
                                   1 -> (\(d:[])   -> (Text,d)) args
-                                  2 -> (\(o:d:[]) -> (read o,d)) args
+                                  2 -> (\(o:d:[]) -> (read $ capitalise o,d)) args
                                   _ -> error help
           s <- openSerial device defaultSerialSettings { baudRate = B2400 }
           sendChar s 'V'
@@ -52,6 +52,9 @@ main = do args <- getArgs
 
       short = "Error while reading from Sleeptracker!\n\
               \Watch showing DATA screen?\n"
+
+      capitalise :: String -> String
+      capitalise s = (toUpper $ head s) : tail s
 
 data Date = Date { day, month, year :: Int }
 
