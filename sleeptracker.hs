@@ -7,7 +7,7 @@ import Control.Monad.Loops (unfoldM)
 import Data.List (intersperse)
 import System.Hardware.Serialport
 import Text.Printf (printf)
-import Text.ParserCombinators.Parsec (GenParser,count,tokenPrim,parseTest)
+import Text.ParserCombinators.Parsec (GenParser,ParseError,count,tokenPrim,parse,parseTest)
 import Time (getClockTime,toCalendarTime,ctYear)
 
 main = do s <- openSerial "/dev/ttyUSB0" defaultSerialSettings { baudRate = B2400 }
@@ -16,8 +16,13 @@ main = do s <- openSerial "/dev/ttyUSB0" defaultSerialSettings { baudRate = B240
           when (length response < 15) (error short)
           unless (checksumIsCorrect response) (error "Checksum Error.")
           year <- ctYear <$> (toCalendarTime =<< getClockTime)
-          run (sleepParser year) response
+          sleep <- toIO $ parse (sleepParser year) "" response
+          putStrLn $ show sleep
           closeSerial s
+
+toIO :: Either ParseError a -> IO a
+toIO (Left  e) = error $ show e
+toIO (Right x) = return x
 
 short = "Error while reading from Sleeptracker!\n\
          \Watch showing DATA screen?\n"
