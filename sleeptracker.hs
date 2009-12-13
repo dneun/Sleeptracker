@@ -1,6 +1,6 @@
 module Main where
 
-import Char (ord,toUpper)
+import Char (ord,toUpper,toLower)
 import Control.Applicative ((<$>))
 import Control.Monad (when,unless)
 import Control.Monad.Loops (unfoldM)
@@ -56,7 +56,8 @@ main = do args <- getArgs
               \Watch showing DATA screen?\n"
 
       capitalize :: String -> String
-      capitalize (x:xs) = toUpper x : xs
+      capitalize ""     = ""
+      capitalize (x:xs) = toUpper x : map toLower xs
 
 data Date = Date { day, month, year :: Int }
 
