@@ -33,25 +33,25 @@ main = do args <- getArgs
           sleep <- toIO $ parse (sleepParser year) "" response
           output format sleep
           closeSerial s
+    where
+      output :: Output -> Sleep -> IO ()
+      output Text    = putStrLn . show
+      output Csv     = putStrLn . csv
+      output Browser = execute . browser
+      output Xml     = putStrLn . xml
 
-output :: Output -> Sleep -> IO ()
-output Text    = putStrLn . show
-output Csv     = putStrLn . csv
-output Browser = execute . browser
-output Xml     = putStrLn . xml
+      execute :: String -> IO ()
+      execute s = runCommand s >>= waitForProcess >>= exitWith
 
-execute :: String -> IO ()
-execute s = runCommand s >>= waitForProcess >>= exitWith
+      help :: String
+      help = "Usage: sleeptracker [format] device\n\
+             \format:    browser(default), text, csv, xml\n"
 
-help :: String
-help = "Usage: sleeptracker [format] device\n\
-       \format:    browser(default), text, csv, xml\n"
+      toIO :: Either ParseError a -> IO a
+      toIO = either (error.show) return
 
-toIO :: Either ParseError a -> IO a
-toIO = either (error.show) return
-
-short = "Error while reading from Sleeptracker!\n\
-         \Watch showing DATA screen?\n"
+      short = "Error while reading from Sleeptracker!\n\
+              \Watch showing DATA screen?\n"
 
 data Date = Date { day, month, year :: Int }
 
