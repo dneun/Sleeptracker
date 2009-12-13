@@ -32,9 +32,9 @@ main = do args <- getArgs
           closeSerial s
     where
       parseArgs :: [String] -> (Output,FilePath)
-      parseArgs [d]   = (Browser,d)
-      parseArgs [o,d] = (read $ capitalise o,d)
-      parseArgs _     = error help
+      parseArgs [device]        = (Browser,device)
+      parseArgs [output,device] = (read $ capitalise output,device)
+      parseArgs _               = error help
 
       output :: Output -> Sleep -> IO ()
       output Text    = putStrLn . show
