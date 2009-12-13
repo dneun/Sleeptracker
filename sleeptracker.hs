@@ -41,8 +41,7 @@ output Browser = execute . browser
 output Xml     = putStrLn . xml
 
 execute :: String -> IO ()
-execute s = do pid <- runCommand s
-               waitForProcess pid >>= exitWith
+execute s = runCommand s >>= waitForProcess >>= exitWith
 
 help :: String
 help = "Usage: sleeptracker [format] device\n\
