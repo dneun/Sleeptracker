@@ -20,10 +20,7 @@ data Output = Text
               deriving (Read)
 
 main = do args <- getArgs
-          let (format,device) = case (length args) of
-                                  1 -> (\(d:[])   -> (Text,d)) args
-                                  2 -> (\(o:d:[]) -> (read $ capitalise o,d)) args
-                                  _ -> error help
+          let (format,device) = dispatch args
           s <- openSerial device defaultSerialSettings { baudRate = B2400 }
           sendChar s 'V'
           response <- unfoldM $ fmap ord <$> recvChar s
@@ -34,6 +31,11 @@ main = do args <- getArgs
           output format sleep
           closeSerial s
     where
+      dispatch :: [String] -> (Output,FilePath)
+      dispatch [d]   = (Text,d)
+      dispatch [o,d] = (read $ capitalise o,d)
+      dispatch _     = error help
+
       output :: Output -> Sleep -> IO ()
       output Text    = putStrLn . show
       output Csv     = putStrLn . csv
