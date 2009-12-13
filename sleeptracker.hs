@@ -33,7 +33,7 @@ main = do args <- getArgs
     where
       parseArgs :: [String] -> (Format,FilePath)
       parseArgs [device]        = (Browser,device)
-      parseArgs [output,device] = (read $ capitalize output,device)
+      parseArgs [format,device] = (read $ capitalize format,device)
       parseArgs _               = error help
 
       output :: Format -> Sleep -> IO ()
