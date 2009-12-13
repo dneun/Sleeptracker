@@ -43,7 +43,7 @@ main = do args <- getArgs
       output Xml     = putStrLn . xml
 
       execute :: String -> IO ()
-      execute s = runCommand s >>= waitForProcess >>= exitWith
+      execute s = putStrLn s >> runCommand s >>= waitForProcess >>= exitWith
 
       help :: String
       help = "Usage: sleeptracker [format] device\n\
