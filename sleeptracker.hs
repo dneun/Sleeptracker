@@ -13,7 +13,7 @@ import System (exitWith)
 import System.Environment (getArgs)
 import System.Process (runCommand,waitForProcess)
 
-data Output = Text
+data Format = Text
             | Csv
             | Browser
             | Xml 
@@ -31,12 +31,12 @@ main = do args <- getArgs
           output format sleep
           closeSerial s
     where
-      parseArgs :: [String] -> (Output,FilePath)
+      parseArgs :: [String] -> (Format,FilePath)
       parseArgs [device]        = (Browser,device)
       parseArgs [output,device] = (read $ capitalise output,device)
       parseArgs _               = error help
 
-      output :: Output -> Sleep -> IO ()
+      output :: Format -> Sleep -> IO ()
       output Text    = putStrLn . show
       output Csv     = putStrLn . csv
       output Browser = execute . browser
