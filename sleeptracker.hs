@@ -33,7 +33,7 @@ main = do args <- getArgs
     where
       parseArgs :: [String] -> (Format,FilePath)
       parseArgs [device]        = (Browser,device)
-      parseArgs [output,device] = (read $ capitalise output,device)
+      parseArgs [output,device] = (read $ capitalize output,device)
       parseArgs _               = error help
 
       output :: Format -> Sleep -> IO ()
@@ -55,8 +55,8 @@ main = do args <- getArgs
       short = "Error while reading from Sleeptracker!\n\
               \Watch showing DATA screen?\n"
 
-      capitalise :: String -> String
-      capitalise s = (toUpper $ head s) : tail s
+      capitalize :: String -> String
+      capitalize (x:xs) = toUpper x : xs
 
 data Date = Date { day, month, year :: Int }
 
