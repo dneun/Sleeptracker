@@ -21,8 +21,7 @@ main = do s <- openSerial "/dev/ttyUSB0" defaultSerialSettings { baudRate = B240
           closeSerial s
 
 toIO :: Either ParseError a -> IO a
-toIO (Left  e) = error $ show e
-toIO (Right x) = return x
+toIO = either (error.show) return
 
 short = "Error while reading from Sleeptracker!\n\
          \Watch showing DATA screen?\n"
