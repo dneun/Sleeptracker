@@ -1,25 +1,63 @@
 module Main where
 
-import Char (ord)
+import Char (ord,toUpper,toLower)
 import Control.Applicative ((<$>))
-import Control.Monad
+import Control.Monad (when,unless)
 import Control.Monad.Loops (unfoldM)
 import Data.List (intersperse)
 import System.Hardware.Serialport
-import Text.Printf
-import Time hiding (TimeDiff)
+import Text.Printf (printf)
+import Text.ParserCombinators.Parsec (GenParser,ParseError,count,tokenPrim,parse,parseTest)
+import Time (getClockTime,toCalendarTime,ctYear)
+import System (exitWith)
+import System.Environment (getArgs)
+import System.Process (runCommand,waitForProcess)
 
-main = do s <- openSerial "/dev/ttyUSB0" defaultSerialSettings { baudRate = B2400 }
+data Format = Text
+            | Csv
+            | Browser
+            | Xml 
+              deriving (Read)
+
+main = do args <- getArgs
+          let (format,device) = parseArgs args
+          s <- openSerial device defaultSerialSettings { baudRate = B2400 }
           sendChar s 'V'
           response <- unfoldM $ fmap ord <$> recvChar s
           when (length response < 15) (error short)
           unless (checksumIsCorrect response) (error "Checksum Error.")
           year <- ctYear <$> (toCalendarTime =<< getClockTime)
-          print $ parse response year
+          sleep <- toIO $ parse (sleepParser year) "" response
+          output format sleep
           closeSerial s
+    where
+      parseArgs :: [String] -> (Format,FilePath)
+      parseArgs [device]        = (Browser,device)
+      parseArgs [format,device] = (read $ capitalize format,device)
+      parseArgs _               = error help
 
-short = "Error while reading from Sleeptracker!\n\
-         \Watch showing DATA screen?\n"
+      output :: Format -> Sleep -> IO ()
+      output Text    = putStrLn . show
+      output Csv     = putStrLn . csv
+      output Browser = execute . browser
+      output Xml     = putStrLn . xml
+
+      execute :: String -> IO ()
+      execute s = putStrLn s >> runCommand s >>= waitForProcess >>= exitWith
+
+      help :: String
+      help = "Usage: sleeptracker [format] device\n\
+             \format:    browser(default), text, csv, xml\n"
+
+      toIO :: Either ParseError a -> IO a
+      toIO = either (error.show) return
+
+      short = "Error while reading from Sleeptracker!\n\
+              \Watch showing DATA screen?\n"
+
+      capitalize :: String -> String
+      capitalize ""     = ""
+      capitalize (x:xs) = toUpper x : map toLower xs
 
 data Date = Date { day, month, year :: Int }
 
@@ -73,20 +111,41 @@ instance Show Sleep where
              \Awake moments (" ++ show (length (almostAwakes s)) ++ "):\n" ++
              showAlmostAwakes (toBed s) (almostAwakes s) ++ "\n"
 
-parse :: [Int] -> Int -> Sleep
-parse lst year = 
-    let ([_,month,day,_,window,toBed0,toBed1,alarm0,alarm1,cntData],rest) = splitAt 10 lst
-        (left,right) = splitAt (cntData * 3) rest
-    in Sleep { date         = Date day month year,
-               window       = Window window,
-               toBed        = ShortTime toBed0 toBed1,
-               alarm        = ShortTime alarm0 alarm1,
-               almostAwakes = map3 LongTime left,
-               dataA        = parseDataA right
-             }
+type Parser a = GenParser Int () a
 
-parseDataA :: [Int] -> DataA
-parseDataA = DataA . sum . zipWith (*) [1,0xff]
+sleepParser :: Int -> Parser Sleep
+sleepParser year = do parseInt
+                      date <- parseDate year
+                      parseInt
+                      window <- parseWindow
+                      toBed <- parseShortTime
+                      alarm <- parseShortTime
+                      n <- parseInt
+                      almostAwakes <- count n parseLongTime
+                      dataA <- parseDataA
+                      return $ Sleep date window toBed alarm dataA almostAwakes
+    where
+      parseDate :: Int -> Parser Date
+      parseDate year = (\(m:d:_) -> Date d m year) <$> count 2 parseInt
+
+      parseDataA :: Parser DataA
+      parseDataA = DataA . sum . zipWith (*) [1,0xff] <$> count 2 parseInt
+
+      parseWindow :: Parser Window
+      parseWindow = Window <$> parseInt
+
+      parseShortTime :: Parser ShortTime
+      parseShortTime = (\(h:m:_) -> ShortTime h m) <$> count 2 parseInt
+
+      parseLongTime :: Parser LongTime
+      parseLongTime = (\(h:m:s:_) -> LongTime h m s) <$> count 3 parseInt
+
+      parseInt :: Parser Int
+      parseInt = tokenPrim show (\p _ _ -> p) Just
+
+run = parseTest :: Parser Sleep -> [Int] -> IO ()
+
+--
 
 computeDataA :: Sleep -> DataA
 computeDataA sleep = 
@@ -124,10 +183,6 @@ diffSeconds a b | a < b     = b - a
     where toMidnight = midnight - a
           midnight   = 24 * 60 * 60
 
-map3 :: (a -> a -> a -> b) -> [a] -> [b]
-map3 f []         = []
-map3 f (x:y:z:xs) = f x y z : map3 f xs
-
 diffs :: (a -> a -> b) -> [a] -> [b]
 diffs f lst = zipWith f lst (tail lst)
 
@@ -161,4 +216,24 @@ csv s = printf "%s;%s;%s;%s;%s;%s;%s;%s"
         ++ ";\n"
 
 xml :: Sleep -> String
-xml = undefined
+xml s = printf "<sleepRecord date=\"%s\">\n\
+               \   <toBed>%s</toBed>\n\
+               \   <alarmTime>%s</alarmTime>\n\
+               \    <effectiveAlarmTime>%s</effectiveAlarmTime>\n\
+               \   <window>%s</window>\n\
+               \   <dataA clc=\"%s\">%s</dataA>\n\
+               \   <awakeMoments cnt=\"%s\">\n\
+               \   %s\
+               \   </awakeMoments>\n\
+               \<sleepRecord>\n"
+               (show $ date s)
+               (show $ toBed s)
+               (show $ alarm s)
+               (show $ last $ almostAwakes s)
+               (show $ window s)
+               (show $ dataA s)
+               (show $ computeDataA s)
+               (show $ length $ almostAwakes s)
+               (concat $ zipWith format [1..] (almostAwakes s))
+    where format :: Int -> LongTime -> String
+          format n a = printf "<data count=\"%d\">%s</data>\n" n (show a)
