@@ -9,16 +9,44 @@ import System.Hardware.Serialport
 import Text.Printf (printf)
 import Text.ParserCombinators.Parsec (GenParser,ParseError,count,tokenPrim,parse,parseTest)
 import Time (getClockTime,toCalendarTime,ctYear)
+import System (exitWith)
+import System.Environment (getArgs)
+import System.Process (runCommand,waitForProcess)
 
-main = do s <- openSerial "/dev/ttyUSB0" defaultSerialSettings { baudRate = B2400 }
+data Output = Text
+            | Csv
+            | Browser
+            | Xml 
+              deriving (Read)
+
+main = do args <- getArgs
+          let (format,device) = case (length args) of
+                                  1 -> (\(d:[])   -> (Text,d)) args
+                                  2 -> (\(o:d:[]) -> (read o,d)) args
+                                  _ -> error help
+          s <- openSerial device defaultSerialSettings { baudRate = B2400 }
           sendChar s 'V'
           response <- unfoldM $ fmap ord <$> recvChar s
           when (length response < 15) (error short)
           unless (checksumIsCorrect response) (error "Checksum Error.")
           year <- ctYear <$> (toCalendarTime =<< getClockTime)
           sleep <- toIO $ parse (sleepParser year) "" response
-          putStrLn $ show sleep
+          output format sleep
           closeSerial s
+
+output :: Output -> Sleep -> IO ()
+output Text    = putStrLn . show
+output Csv     = putStrLn . csv
+output Browser = execute . browser
+output Xml     = putStrLn . xml
+
+execute :: String -> IO ()
+execute s = do pid <- runCommand s
+               waitForProcess pid >>= exitWith
+
+help :: String
+help = "Usage: sleeptracker [format] device\n\
+       \format:    browser(default), text, csv, xml\n"
 
 toIO :: Either ParseError a -> IO a
 toIO = either (error.show) return
