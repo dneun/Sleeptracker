@@ -20,7 +20,7 @@ data Output = Text
               deriving (Read)
 
 main = do args <- getArgs
-          let (format,device) = dispatch args
+          let (format,device) = parseArgs args
           s <- openSerial device defaultSerialSettings { baudRate = B2400 }
           sendChar s 'V'
           response <- unfoldM $ fmap ord <$> recvChar s
@@ -31,10 +31,10 @@ main = do args <- getArgs
           output format sleep
           closeSerial s
     where
-      dispatch :: [String] -> (Output,FilePath)
-      dispatch [d]   = (Text,d)
-      dispatch [o,d] = (read $ capitalise o,d)
-      dispatch _     = error help
+      parseArgs :: [String] -> (Output,FilePath)
+      parseArgs [d]   = (Browser,d)
+      parseArgs [o,d] = (read $ capitalise o,d)
+      parseArgs _     = error help
 
       output :: Output -> Sleep -> IO ()
       output Text    = putStrLn . show
