@@ -5,13 +5,13 @@ import Control.Applicative ((<$>))
 import Control.Monad (when,unless)
 import Control.Monad.Loops (unfoldM)
 import Data.List (intersperse)
-import System.Hardware.Serialport
-import Text.Printf (printf)
-import Text.ParserCombinators.Parsec (GenParser,ParseError,count,tokenPrim,parse,parseTest)
-import Time (getClockTime,toCalendarTime,ctYear)
 import System (exitWith)
 import System.Environment (getArgs)
+import System.Hardware.Serialport
 import System.Process (runCommand,waitForProcess)
+import Text.ParserCombinators.Parsec hiding (Parser)
+import Text.Printf (printf)
+import Time (getClockTime,toCalendarTime,ctYear)
 
 data Format = Text
             | Csv
